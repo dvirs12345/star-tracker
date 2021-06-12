@@ -20,7 +20,7 @@ def takeX(elem):
 
 
 # file_name='/Users/revital/Downloads/120.png'
-file_name = 'pic1.jpg'
+file_name = 'pic3.jpg'
 
 file = open("%s_res.txt" % file_name, "w")
 image = cv2.imread(file_name)

@@ -13,6 +13,7 @@ def calc_distance(x1, x2, y1, y2):
 
 
 def get_distances(df, myid):
+    """ returns the distance between a star and all the others"""
     mystar = df[df["id"] == myid]
     others = df[df["id"] != myid]
     distdict = {}
@@ -24,6 +25,7 @@ def get_distances(df, myid):
 
 
 def update_distance(df):
+    """ Updates the df with the distances"""
     df["Pdistances"] = None
     for index, row in df.iterrows():
         df["Pdistances"][index] = get_distances(df, row["id"])
@@ -52,6 +54,7 @@ def load_detection_result(filename):
 
 
 def load_star_data(filename, max_visible):
+    """ Loads the Yale star dataset and remove unneeded values """
     mycsv = pd.read_csv(filename)
     mycsv = mycsv[["id", "ra", "proper", "dec", "x", "y", "z", "mag"]]  # Have only the vars for distance calculation
     mycsv = mycsv[mycsv["mag"] <= max_visible]  # Remove the stars that we can't see with the naked eye = 6
@@ -62,6 +65,7 @@ def load_star_data(filename, max_visible):
 
 
 def calc_AD(stardf, id1, id2):
+    """ calculates AD of two stars """
     dec1 = stardf.loc[stardf["id"] == id1, "dec"]
     dec2 = stardf.loc[stardf["id"] == id2, "dec"]
     ra1 = stardf.loc[stardf["id"] == id1, "ra"]
@@ -71,10 +75,12 @@ def calc_AD(stardf, id1, id2):
 
 
 def calc_SPD(S, AD):
+    """ Calculates StarPixelDistance """
     return S * AD
 
 
 def update_angular_distance(stardf):
+    """ Updates the angular distance for a star with all the others in pixels (stardf) """
     stardf["pdistances"] = None
     for index, row in stardf.iterrows():
         stardf["pdistances"][index] = get_star_distances(stardf, row['id'])
@@ -83,6 +89,7 @@ def update_angular_distance(stardf):
 
 
 def get_star_distances(stardf, myid):
+    """ Returns the angular distance between a star and all the others """
     mystar = stardf[stardf["id"] == myid]
     others = stardf[stardf["id"] != myid]
     distdict = {}
