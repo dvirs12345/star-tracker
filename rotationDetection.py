@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import math
 
+galagys8aol = 80
+picsize = 0
 SValue = 12000000
 
 
@@ -59,17 +61,15 @@ def load_star_data(filename, max_visible):
     mycsv = mycsv[["id", "ra", "proper", "dec", "x", "y", "z", "mag"]]  # Have only the vars for distance calculation
     mycsv = mycsv[mycsv["mag"] <= max_visible]  # Remove the stars that we can't see with the naked eye = 6
     mycsv = mycsv[mycsv["id"] != 0]  # Remove the sun
-    print(mycsv.head())
-    print(mycsv.shape)
     return mycsv
 
 
 def calc_AD(stardf, id1, id2):
     """ calculates AD of two stars """
-    dec1 = stardf.loc[stardf["id"] == id1, "dec"]
-    dec2 = stardf.loc[stardf["id"] == id2, "dec"]
-    ra1 = stardf.loc[stardf["id"] == id1, "ra"]
-    ra2 = stardf.loc[stardf["id"] == id2, "ra"]
+    dec1 = stardf.loc[stardf["id"] == id1, "dec"].tolist()[0]
+    dec2 = stardf.loc[stardf["id"] == id2, "dec"].tolist()[0]
+    ra1 = stardf.loc[stardf["id"] == id1, "ra"].tolist()[0]
+    ra2 = stardf.loc[stardf["id"] == id2, "ra"].tolist()[0]
 
     return math.sin(dec1) * math.sin(dec2) + math.cos(dec1) * math.cos(dec2) * math.cos(ra1 - ra2)  # formula for AD
 
@@ -79,8 +79,13 @@ def calc_SPD(S, AD):
     return S * AD
 
 
+def calc_S():
+    """ Calculates S"""
+    return picsize/galagys8aol
+
+
 def update_angular_distance(stardf):
-    """ Updates the angular distance for a star with all the others in pixels (stardf) """
+    """ Updates the angular distance for all the stars with all the others in pixels (stardf) """
     stardf["pdistances"] = None
     for index, row in stardf.iterrows():
         stardf["pdistances"][index] = get_star_distances(stardf, row['id'])
@@ -93,8 +98,9 @@ def get_star_distances(stardf, myid):
     mystar = stardf[stardf["id"] == myid]
     others = stardf[stardf["id"] != myid]
     distdict = {}
+    myS = calc_S()
     for index, row in others.iterrows():
-        distdict[row["id"]] = calc_SPD(SValue, calc_AD(stardf, myid, row["id"]))
+        distdict[row["id"]] = calc_SPD(myS, calc_AD(stardf, myid, row["id"]))
 
     return distdict
 
@@ -115,6 +121,9 @@ def main():
 
     Original_Image = Image.open("pic1.jpg")
 
+    picsize = mypic1.shape[0] * mypic1.shape[1]
+
+    print(picsize/80)
     rotated_image1 = Original_Image.rotate(90)
     plt.imshow(rotated_image1)
     # plt.show()
@@ -122,9 +131,11 @@ def main():
 
     df = load_detection_result("pic1.jpg_res.txt")
     df = update_distance(df)
-    # print(df.head())
+    print(df.head())
 
-    load_star_data("hygdata_v3.csv", 6)
+    stardf = load_star_data("hygdata_v3.csv", 6)
+    stardf = update_angular_distance(stardf)
+    print(stardf.head())
 
 
 main()
